@@ -1,0 +1,48 @@
+mybatis:
+  config-location: classpath:mybatis/mybatis-config.xml #mybatis-config.xml的路径
+  check-config-location: false #是否对mybatis-config.xml是否存在进行检查
+  mapper-locations: classpath:mybatis/mapper/*.xml #Mapper xml配置文件的位置。
+  type-aliases-package: com.jackinjava.myweb.demo #让MyBatis自动扫描类型的包
+  type-aliases-super-type: #用于过滤类型别名的超类。如果没有指定，MyBatis将从type-aliases-package中搜索的所有类作为类型别名处理。
+  type-handlers-package: com.jackinjava.myweb.demo #用来搜索类型处理类的包名
+  executor-type: simple
+  default-scripting-language-driver: org.apache.ibatis.scripting.xmltags.XMLLanguageDriver #默认脚本语言驱动程序类
+  configuration-properties: classpath:mybatis/config.properties #MyBatis配置的外部化属性。指定的属性可以用作MyBatis配置文件和Mapper文件的占位符。
+  lazy-initialization: false #是否启用映射器bean的延迟初始化。将true设置为启用延迟初始化。
+  mapper-default-scope: #通过自动配置扫描的映射器bean的默认范围。
+#  scripting-language-driver: #脚本语言设置
+#    thymeleaf:
+#    velocity:
+#    freemarker:
+
+  configuration: #不能和 config-location 一起使用，与settins一致
+    cache-enabled: true #全局启用或禁用在此配置下的任何映射器中配置的任何缓存。
+    lazy-loading-enabled: false #全局启用或禁用懒加载。当启用时，所有关系将被懒加载。对于特定的关系，可以使用fetchType属性替换该值。
+    aggressive-lazy-loading: false #默认false, 版本<3.4.1时默认true，当启用时，任何方法调用都将加载对象的所有lazy属性。否则，每个属性将按需加载(请参见lazyLoadTriggerMethods)。
+    multiple-result-sets-enabled: true #允许或禁止从单个语句返回多个ResultSet(需要兼容驱动程序)。
+    use-column-label: true #使用列标签而不是列名。不同的驱动在这方面表现不同。参考驱动程序文档，或测试两种模式，以确定您的驱动程序的行为。
+    use-generated-keys: false #允许JDBC支持生成的密钥。需要一个兼容的驱动程序。如果设置为true，这个设置将强制生成要使用的键，因为有些驱动程序拒绝兼容性，但仍然可以工作(例如Derby)。
+    auto-mapping-behavior: partial #NONE, PARTIAL, FULL #指定MyBatis是否以及如何自动将列映射到字段/属性。NONE禁用自动映射。PARTIAL只会自动映射没有定义嵌套结果映射的结果。FULL将自动映射任何复杂性的结果映射(包含嵌套或其他)。
+    auto-mapping-unknown-column-behavior: none #NONE, WARNING, FAILING #指定当检测到自动映射目标的未知列(或未知属性类型)时的行为。NONE什么也不做，WARNING输出警告日志(日志级别为'org.apache.ibatis.session。AutoMappingUnknownColumnBehavior'必须设置为WARN), FAILING映射失败(抛出SqlessionException)
+    default-executor-type: simple #SIMPLE REUSE BATCH #配置默认执行器。SIMPLE执行器不做任何特别的事情。REUSE执行器重用准备好的语句。BATCH执行器重用语句和批量更新。
+    default-statement-timeout: 10 #默认Not Set (null) 设置驱动程序等待数据库响应的秒数。
+    default-fetch-size: 10 #默认Not Set (null),为驱动程序设置一个提示，以控制返回结果的抓取大小。可通过查询设置覆盖此参数值。
+    default-result-set-type: default #FORWARD_ONLY | SCROLL_SENSITIVE | SCROLL_INSENSITIVE | DEFAULT(same behavior with 'Not Set') #在每个语句设置中省略滚动策略时指定滚动策略。(since:3.5.2)
+    safe-row-bounds-enabled: false #是否允许在嵌套语句上使用RowBounds。如果允许，则设置为false。
+    safe-result-handler-enabled: true #是否允许在嵌套语句上使用ResultHandler。如果允许，则设置为false。
+    map-underscore-to-camel-case: true #是否启用数据库列名A_COLUMN到驼峰式Java属性名aColumn的自动映射。
+    local-cache-scope: session #SESSION | STATEMENT #MyBatis使用本地缓存来防止循环引用并加速重复的嵌套查询。默认情况下(SESSION)在会话期间执行的所有查询都被缓存。如果localCacheScope=STATEMENT本地会话只用于语句执行，则对同一个SqlSession的两个不同调用之间不会共享数据。
+    jdbc-type-for-null: other #JdbcType枚举类. 常见的有: NULL, VARCHAR and OTHER #当没有为参数提供特定的JDBC类型时，为空值指定JDBC类型。有些驱动程序需要指定列JDBC类型，但其他驱动程序使用通用值，如NULL、VARCHAR或OTHER。
+    lazy-load-trigger-methods: equals,clone,hashCode,toString #指定Object的哪些方法触发延迟加载, 用逗号分隔的方法名称列表
+#    default-scripting-language: org.apache.ibatis.scripting.xmltags.XMLLanguageDriver #已经被废弃，指定用于动态SQL生成的默认语言
+    default-enum-type-handler: org.apache.ibatis.type.EnumTypeHandler #指定默认为Enum使用的TypeHandler。(since:3.4.5)
+    call-setters-on-nulls: false #指定当检索到的值为空时是否调用setter方法或map的put方法。当您依赖Map.keySet()或空值初始化时，它非常有用。注意，像(int,boolean，等等)这样的原语不会被设置为空。
+    return-instance-for-empty-row: false #默认情况下，MyBatis在返回行的所有列都为null时返回null。当启用此设置时，MyBatis将返回一个空实例。请注意，它也适用于嵌套结果(即集合体和关联)。since:3.4.2
+    log-prefix: mybatis #指定MyBatis将添加到日志中的前缀字符串。默认 Not Set
+    log-impl:  #指定MyBatis应该使用哪个日志系统。如果没有此设置，则自动发现日志记录实现。  SLF4J | LOG4J | LOG4J2 | JDK_LOGGING | COMMONS_LOGGING | STDOUT_LOGGING | NO_LOGGING
+    proxy-factory: JAVASSIST #指定MyBatis将用于创建具有延迟加载能力的对象的动态代理工具。 CGLIB | JAVASSIST
+    vfs-impl: #指定VFS实现,用逗号分隔的自定义VFS实现的完全限定类名。默认 Not Set
+    use-actual-param-name: true #是否允许根据方法签名中声明的语句参数的实际名称引用语句参数。要使用此特性，您的项目必须在Java 8中使用-parameters选项进行编译。(since:3.4.1)
+    configuration-factory: #指定提供Configuration实例的类。返回的Configuration实例用于加载反序列化对象的lazy属性。这个类必须有一个具有static Configuration getConfiguration()的方法。(since:3.2.3):
+    shrink-whitespaces-in-sql: false #是否从SQL中删除额外的空格字符。注意，这也会影响SQL中的字面值字符串。(since:3.5.5)
+    default-sql-provider-type: #默认 Not Set, 指定包含提供程序方法的sql提供程序类(从3.5.6开始)。这个类应用于sql提供程序注释的类型(或值)属性(例如:@SelectProvider)，当这些属性被省略时。

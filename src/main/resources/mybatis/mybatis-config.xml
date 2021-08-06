@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<!--
+Mybatis 配置文件包含以下文件结构：
+- properties
+- settings
+- typeAliases
+- typeHandlers
+- objectFactory
+- plugins
+- environments
+    - environment
+        - transactionManager
+        - dataSource
+- databaseIdProvider
+- mappers
+
+-->
+<configuration>
+    <!--
+        这些是可外部化的、可替换的属性，可以在典型的Java properties文件实例中配置，或者通过properties元素的子元素property传入。如下:
+        properties也可以传递给SqlessionFactorybuilder.build()方法。例如:
+        SqlSessionFactory factory = new SqlSessionFactoryBuilder.build(reader, props);
+        SqlSessionFactory factory = new SqlSessionFactoryBuilder.build(reader, environment, props);
+
+        如果在多个地方配置同一个属性，MyBatis将会按照以下顺序加载:
+          - 首先读取该配置文件中properties中property属性
+          - 然后是properties中resource或者url引入的外部配置，并且覆盖已配置的属性
+          - 最后就是在代码中通过方法传入的Properties，并且进行覆盖
+    -->
+    <properties resource="mybatis/config.properties">
+        <property name="db:username" value="dev_user"/>
+        <property name="password" value="F2Fa3!33TYyg"/>
+        <!-- 自MyBatis 3.4.2版本，你可以在property的value中指定一个默认值到占位符，该功能在默认情况下是禁用的，如果你想指定了一个默认值到占位符，
+            你应该通过添加一个特殊的属性来启用这个特性，如下所示:-->
+        <property name="org.apache.ibatis.parsing.PropertyParser.enable-default-value" value="true"/>
+        <!-- 不过当你的关键字name中中包含”:“,就会冲突，例如下面的db:username，这个时候需要自定义默认值分隔符：-->
+        <property name="org.apache.ibatis.parsing.PropertyParser.default-value-separator" value="?:"/>
+    </properties>
+
+    <!--  settings 对应springboot配置文件中的 mybatis.configuration  -->
+    <settings>
+        <setting name="cacheEnabled" value="true"/>
+        <setting name="lazyLoadingEnabled" value="false"/>
+        <!--    other   -->
+    </settings>
+
+    <!-- 类型别名只是Java类型的较短名称。它只与XML配置相关，存在只是为了减少完全限定类名的冗余输入。 -->
+    <typeAliases>
+        <typeAlias alias="Author" type="com.jackinjava.myweb.demo.Author"/>
+        <!--还可以指定一个包，MyBatis将在其中搜索bean。默认以类的全小写非限定类名注册为别名，也可以使用注解 @Alias 自定义别名。
+            对于常见的Java类型，有许多内置的类型别名。它们都是不区分大小写的，请注意由于重载名称而对原语的特殊处理。
+            https://mybatis.org/mybatis-3/configuration.html#typeAliases-->
+        <package name="com.jackinjava.myweb.demo"/>
+    </typeAliases>
+
+    <!--每当MyBatis在 PreparedStatement 上设置参数或从 ResultSet 中检索值时，都会使用TypeHandler以适合于Java类型的方式检索值。
+        您可以重写类型处理程序或创建自己的类型处理程序来处理不受支持的或非标准的类型。为此，实现接口org.apache.ibatis.type.TypeHandler
+        或扩展类org.apache.ibatis.type.BaseTypeHandler，并可选地将其映射到JDBC类型。例如:com.jackinjava.myweb.demo.DemoTypeHandler
+     -->
+    <typeHandlers>
+        <!--
+            使用这样的TypeHandler将覆盖Java String属性和VARCHAR参数及结果的现有类型处理程序。注意，MyBatis不会自检数据库元数据以确定类型，
+        因此必须在参数和结果映射中指定它是VARCHAR字段，以便使用正确的类型处理程序。这是因为MyBatis在执行语句之前是不知道数据类型的。
+            MyBatis将通过泛型类型来知道你想用这个TypeHandler处理的Java类型，但是你可以通过两种方法重写这个行为:
+            - 通过javaType="String"来指定Java类型，该属性将覆盖注解指定的类型
+            - 通过注解 @MappedTypes 来指定 Java类型，可以指定多个class
+            关联的JDBC类型可以通过两种方式指定:
+            - 通过jdbcType="VARCHAR"来指定jdbc类型，该属性将覆盖注解指定的类型
+            - 通过注解 @MappedJdbcTypes 来指定 jdbc类型
+
+            当决定在ResultMap中使用哪个TypeHandler时，Java类型是已知的(从结果类型)，但JDBC类型是未知的。MyBatis因此使用javaType=[TheJavaType]，
+        jdbcType=null的组合来选择一个TypeHandler。因此如果使用@MappedJdbcTypes 就会限制TypeHandler的作用域，使其无法在ResultMap中使用，
+        除非设置includeNullJdbcType = true。
+            自3.4.0版本以后，如果只有一个TypeHandler被注册来处理一个Java类型，它将在使用这个Java类型的ResultMaps中被默认使用，
+        即使没有设置inclenulljdbctype =true。
+        -->
+        <typeHandler javaType="String" jdbcType="VARCHAR" handler="com.jackinjava.myweb.demo.DemoTypeHandler"/>
+        <!--指定包路径，让MyBatis自己搜索TypeHandler。 当使用这个功能时，jdbc类型必须通过 @MappedJdbcTypes 来指定-->
+        <package name="com.jackinjava.myweb.demo"/>
+        <!--
+            可以创建能够处理多个类的泛型TypeHandler(示例：GenericTypeHandler)。为此，需要添加一个构造函数，它接收类作为参数，MyBatis将在构造TypeHandler时传递实际的类
+            EnumTypeHandler 和 EnumOrdinalTypeHandler 就是泛型TypeHandler。如果你想映射一个Enum，你需要使用EnumTypeHandler或EnumOrdinalTypeHandler。
+        -->
+    </typeHandlers>
+
+    <!--
+        每次MyBatis创建结果对象的新实例时，它都会使用ObjectFactory实例来完成此操作。默认的ObjectFactory只是使用默认构造函数实例化目标类，
+    如果存在参数映射，则使用参数化构造函数。如果您想覆盖ObjectFactory的默认行为，您可以创建自己的行为。
+        ObjectFactory接口非常简单。它包含两个create方法，一个用于处理默认构造函数，另一个用于处理参数化构造函数。最后，可以使用setProperties方法配置ObjectFactory。
+    在objectFactory实例初始化之后，在objectFactory元素体中定义的property将被传递给setProperties方法。
+    -->
+    <objectFactory type="com.jackinjava.myweb.demo.DemoObjectFactory">
+        <property name="someProperty" value="100"/><!--传递给setProperties方法-->
+    </objectFactory>
+
+    <!--
+    MyBatis允许在执行映射语句的某些点截取调用。默认情况下，MyBatis允许插件拦截以下方法的调用:
+    - Executor (update, query, flushStatements, commit, rollback, getTransaction, close, isClosed)
+    - ParameterHandler (getParameterObject, setParameters)
+    - ResultSetHandler (handleResultSets, handleOutputParameters)
+    - StatementHandler (prepare, parameterize, batch, update, query)
+    不要修改重写所拦截的方法的行为，只做监视调用
+    -->
+    <plugins>
+        <plugin interceptor="com.jackinjava.myweb.demo.DemoPlugin">
+            <property name="someProperty" value="100"/><!--传递给setProperties方法-->
+        </plugin>
+    </plugins>
+
+
+    <!--
+        MyBatis可以配置多个环境。这有助于出于各种原因将SQL map应用到多个数据库。例如，您的开发、测试和生产环境可能有不同的配置。
+    或者，您可能有多个共享相同模式的生产数据库，并且希望为这两个数据库使用相同的SQL映射。有许多用例。
+        但是要记住一件重要的事情:虽然可以配置多个环境，但是每个 SqlSessionFactory 实例只能选择一个环境。因此，如果您想连接两个数据库，
+    则需要创建两个 SqlSessionFactory 实例，每个实例一个。对于三个数据库，您将需要三个实例，以此类推。
+        这很容易记住: 每个数据库一个 SqlSessionFactory 实例。
+        要指定要构建的环境，只需将其作为可选参数传递给 SqlSessionFactoryBuilder，接受环境的两个方法是:
+        - SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(reader, environment);
+        - SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(reader, environment, properties);
+    -->
+    <environments default="development"> <!--default代表默认环境-->
+        <!--代表开发环境-->
+        <environment id="development">
+            <!--
+                TransactionManager配置(例如type="JDBC")
+                在MyBatis中有两种TransactionManager类型(即type="[JDBC|MANAGED]"):
+                - JDBC——这个配置直接使用JDBC提交和回滚工具。它依赖从dataSource检索的连接来管理事务的范围。
+                - MANAGED——这个配置几乎不做任何事情。它从不提交或回滚连接。相反，它让容器管理事务的整个生命周期(例如JEE Application Server上下文)。
+                默认情况下，它会关闭连接。但是，有些容器不希望这样，因此，如果您需要阻止它关闭连接，请将“closeConnection”属性设置为false。例如:
+                <transactionManager type="MANAGED">
+                  <property name="closeConnection" value="false"/>
+                </transactionManager>
+
+                如果您计划将MyBatis与Spring一起使用，则不需要配置任何TransactionManager，因为Spring模块将设置自己的TransactionManager，覆盖之前设置的任何配置。
+
+                使用TransactionFactory 和 Transaction 自定义MyBatis如何处理事务.
+            -->
+            <transactionManager type="JDBC"/>
+
+            <!--
+                DataSource配置(例如type="POOLED")
+                有三种内置的数据源类型(即type="[UNPOOLED|POOLED|JNDI]"):
+            -->
+            <!-- POOLED—DataSource池JDBC Connection对象的实现，以避免创建新Connection实例所需的初始连接和身份验证时间。
+            这是并发web应用程序实现最快响应的流行方法.UNPOOLED 属性，还有很多属性可以用来配置POOLED数据源:
+            -->
+            <dataSource type="POOLED">
+                <property name="driver" value="${driver}"/>
+                <property name="url" value="${url}"/>
+                <property name="username" value="${db:username?:root}"/>
+                <property name="password" value="${password}"/>
+                <property name="poolMaximumActiveConnections" value="10"/><!--这是在任何给定时间内可以存在的活动(即使用)连接的数量。默认值:10-->
+                <property name="poolMaximumIdleConnections" value="15"/><!--任意给定时间内可以存在的空闲连接数。-->
+                <property name="poolMaximumCheckoutTime" value="20000"/><!--这是连接在被强制返回之前可以从池中“checked out”的时间量。默认值:20000ms(即20秒)-->
+                <property name="poolTimeToWait" value="20000"/><!--这是一种低级设置，它使池有机会打印日志状态，并在发生异常的情况下重新尝试获取连接(以避免池配置错误时永远静默地失败)。默认值:20000ms(即20秒)-->
+                <property name="poolMaximumLocalBadConnectionTolerance" value="3"/><!--这是一个关于任何线程的错误连接容忍度的低级设置。如果线程得到一个错误连接，它仍然有机会重新尝试得到另一个有效的连接。但是重试次数不应该超过poolMaximumIdleConnections和poolMaximumLocalBadConnectionTolerance的总和。默认值:3(自3.4.5)-->
+                <property name="poolPingQuery" value="show tables"/><!--将Ping Query发送到数据库，以验证连接是否处于良好的工作状态，并准备好接受请求。默认是“NO PING QUERY SET”，这将导致大多数数据库驱动程序失败，并出现适当的错误消息。-->
+                <property name="poolPingEnabled" value="false"/><!--这将启用或禁用ping查询。如果启用，还必须使用有效的SQL语句(最好是非常快的语句)设置poolPingQuery属性。默认值:false。-->
+                <property name="poolPingConnectionsNotUsedFor" value="0"/><!--将配置使用poolPingQuery的频率。可以将其设置为与数据库连接的典型超时匹配，以避免不必要的ping。默认值:0(即所有连接每次都被ping通-但当然只有当poolPingEnabled为true时)。-->
+            </dataSource>
+            <!--
+                你可以通过实现接口org.apache.ibatis.datasource.DataSourceFactory插入任何第三方数据源:
+            -->
+        </environment>
+
+        <environment id="prod">
+            <transactionManager type="MANAGED">
+                <property name="closeConnection" value="false"/>
+            </transactionManager>
+            <!-- UNPOOLED: DataSource的这种实现只是在每次请求时打开和关闭连接。虽然有点慢，但对于不需要立即可用连接的性能的简单应用程序来说，
+                            这是一个不错的选择。不同的数据库在这个性能方面也不同，因此对某些数据库来说，池可能不那么重要，这种配置将是理想的。-->
+            <dataSource type="UNPOOLED">
+                <property name="driver" value="${driver}"/>
+                <property name="url" value="${url}"/>
+                <property name="username" value="${db:username?:root}"/>
+                <property name="password" value="${password}"/>
+                <property name="defaultTransactionIsolationLevel" value=""/><!--连接的默认事务隔离级别。-->
+                <property name="defaultNetworkTimeout" value=""/><!--网络超时值，以毫秒为单位，详细参考java.sql.Connection#setNetworkTimeout()-->
+                <!--
+                也可以将属性传递给数据库驱动程序。为此，在属性前面加上driver。,例如:
+                这将通过DriverManager将属性编码值UTF8传递给你的数据库驱动 getConnection(url, driverProperties)方法。
+                -->
+                <property name="driver.encoding" value="utf8"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+    <!--
+        MyBatis能够根据数据库供应商执行不同的语句。
+        多数据库厂商支持基于映射语句databaseId属性。MyBatis将加载所有没有databaseId属性或databaseId与当前匹配的语句。
+    如果发现有或没有databaseId的相同语句，后者将被丢弃。要启用多供应商支持，请在mybatis-config.xml文件中添加databaseIdProvider，如下所示:
+    -->
+    <!--
+        DB_VENDOR 实现 databaseIdProvider 将 DatabaseMetaData#getDatabaseProductName() 返回的字符串设置为databaseId。
+    考虑到字符串通常太长，同一产品的不同版本可能会返回不同的值，你可能想要通过添加如下属性将其转换为一个更短的值:
+        当提供属性时，DB_VENDOR databaseIdProvider将搜索在返回的数据库产品名称中找到的第一个键对应的属性值，如果没有匹配的属性，则搜索“null”。
+    在本例中，如果getDatabaseProductName()返回"Oracle (DataDirect)"，则databaseId将被设置为"oracle"。
+        你可以通过实现org.apache.ibatis.mapping.DatabaseIdProvider接口并在mybatis-config.xml中注册它来构建自己的DatabaseIdProvider.
+    -->
+    <databaseIdProvider type="DB_VENDOR">
+        <property name="SQL Server" value="sqlserver"/>
+        <property name="DB2" value="db2"/>
+        <property name="Oracle" value="oracle"/>
+        <property name="MySQL" value="mysql"/>
+    </databaseIdProvider>
+
+
+    <!--
+        现在已经用上面的配置元素配置了MyBatis的行为，我们可以定义映射的SQL语句了。但首先，我们得告诉MyBatis去哪里找他们。
+    在这方面，Java实际上没有提供任何好的自动发现方法，所以最好的方法是告诉MyBatis在哪里可以找到映射文件。可以使用类路径相对资源引用、
+    完全限定url引用(包括file:/// URLs)、类名或包名。例如:
+    -->
+    <mappers>
+        <mapper resource="org/mybatis/builder/AuthorMapper.xml"/><!--使用classpath相对路径-->
+        <mapper url="file:///var/mappers/AuthorMapper.xml"/><!--使用url完全限定路径-->
+        <mapper class="org.mybatis.builder.AuthorMapper"/><!--使用映射器接口类-->
+        <package name="org.mybatis.builder"/><!--将包中的所有接口注册为映射器-->
+    </mappers>
+</configuration>
